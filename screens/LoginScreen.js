@@ -9,12 +9,54 @@ import {
     TouchableOpacity,
     Alert
 } from 'react-native'
+import { StackNavigator } from 'react-navigation';
+import createBottomTabNavigator from '../navigation/MainTabNavigator'
+
 
 const botaoPresionado = () => {
-    Alert.alert('Fazendo login...')
+  // Alert.alert('Fazendo login...');
+    //this.props.navigation.navigate('Dashboard')
+    
 }
 
-export default class LoginScreen extends Component{
+class LoginScreen extends React.Component{
+    static navigationOptions = {
+        header: null,
+      };
+      constructor(props){
+        
+        super(props)
+
+        this.state={
+        
+          UserCodigo:'',
+          UserPassword:''
+
+        }
+      }
+    UserLoginFunction = () =>{
+        const {UserCodigo}= this.state;
+        const {UserPassword}= this.state;
+
+        fetch('localhost/MyApi/include/UserLogin.php', {
+            method: 'POST',
+            headers:{
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                codigo_user: UserCodigo,
+                password_hash: UserPassword
+            })
+        }).then((response)=>response.json())
+            .then((responseJson) => {
+                if(responseJson === 'Login com sucesso'){
+                    this.props.navigation.navigate('second', {Codigo: UserCodigo});
+                }else{
+                    Alert.alert(responseJson);
+                }
+            }).catch((error)=>{console.error(error);});
+    }
     render() {
         return (
             <View style={estilo.principal}>
@@ -26,14 +68,21 @@ export default class LoginScreen extends Component{
 
                     <View> 
                         <Text>Codigo *</Text>
-                        <TextInput placeholder="Codigo" style={estilo.entrada } />
+                        <TextInput placeholder="Codigo" 
+                            style={estilo.entrada }  
+                            onChangeText={UserCodigo =>this.setState({UserCodigo})}
+                        />
                     </View>
                     <View>
                         <Text>Password *</Text>
-                        <TextInput placeholder="Password" secureTextEntry={true} style={estilo.entrada } underlineColorAndroid='transparent'/>
+                        <TextInput placeholder="Password" secureTextEntry={true} 
+                            style={estilo.entrada } 
+                            underlineColorAndroid='transparent'
+                            onChangeText={UserPassword => this.setState({UserPassword})}
+                        />
                     </View>
                     <View>
-                        <TouchableOpacity onPress={botaoPresionado} style={estilo.botao}><Text style={estilo.botaoText}>Entrar</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={this.UserLoginFunction} style={estilo.botao}><Text style={estilo.botaoText}>Entrar</Text></TouchableOpacity>
                     </View>
                 </View>
             </View>
@@ -91,3 +140,5 @@ const estilo = StyleSheet.create({
         height:380
     }
 })
+
+AppRegistry.registerComponent('LoginScreen' ,() => LoginScreen);
